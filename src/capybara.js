@@ -28,6 +28,11 @@ Capybara = {
 
   tagName: function(index) {
     return this.nodes[index].tagName.toLowerCase();
+  },
+
+  value: function(index) {
+    return this.nodes[index].value;
   }
+
 };
 

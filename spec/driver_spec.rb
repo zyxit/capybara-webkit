@@ -9,6 +9,9 @@ describe Capybara::Driver::Webkit do
           <script type="text/javascript">
             document.write("<p id='greeting'>he" + "llo</p>");
           </script>
+          <form action="/" method="GET">
+            <textarea id="only-textarea">what a wonderful area for text</textarea>
+          </form>
         </body></html>
       HTML
       [200,
@@ -58,6 +61,9 @@ describe Capybara::Driver::Webkit do
           <script type="text/javascript">
             document.write("<p id='greeting'>he" + "llo</p>");
           </script><p id="greeting">hello</p>
+          <form action="/" method="GET">
+            <textarea id="only-textarea">what a wonderful area for text</textarea>
+          </form>
         
 </body></html>}
   end
@@ -128,5 +134,9 @@ describe Capybara::Driver::Webkit do
 
   it "returns a node's tag name" do
     subject.find("//p").first.tag_name.should == "p"
+  end
+
+  it "fetches the value of a textarea" do
+    subject.find("//textarea").first.value.should == "what a wonderful area for text"
   end
 end

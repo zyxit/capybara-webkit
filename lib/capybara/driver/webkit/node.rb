@@ -9,12 +9,27 @@ class Capybara::Driver::Webkit
     end
 
     def value
-      raise NotImplementedError
+      invoke "value"
     end
 
     def set(value)
       raise NotImplementedError
     end
+
+    # akephalos
+    # def set(value)
+    #   if tag_name == 'textarea'
+    #     node.value = value.to_s
+    #   elsif tag_name == 'input' and type == 'radio'
+    #     click
+    #   elsif tag_name == 'input' and type == 'checkbox'
+    #     if value != self['checked']
+    #       click
+    #     end
+    #   elsif tag_name == 'input'
+    #     node.value = value.to_s
+    #   end
+    # end
 
     def select_option
       raise NotImplementedError
