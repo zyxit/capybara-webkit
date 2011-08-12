@@ -10,7 +10,9 @@ WebPage::WebPage(QObject *parent) : QWebPage(parent) {
 
   m_loading = false;
 
-  this->setNetworkAccessManager(new NetworkAccessManager());
+  NetworkAccessManager *manager = new NetworkAccessManager();
+  this->setNetworkAccessManager(manager);
+  connect(manager, SIGNAL(finished(QNetworkReply *)), this, SLOT(replyFinished(QNetworkReply *)));
 
   connect(this, SIGNAL(loadStarted()), this, SLOT(loadStarted()));
   connect(this, SIGNAL(loadFinished(bool)), this, SLOT(loadFinished(bool)));
@@ -163,4 +165,17 @@ bool WebPage::extension(Extension extension, const ExtensionOption *option, Exte
 
 QString WebPage::getLastAttachedFileName() {
   return currentFrame()->evaluateJavaScript(QString("Capybara.lastAttachedFile")).toString();
+}
+
+void WebPage::replyFinished(QNetworkReply *reply) {
+  QList<QByteArray> headers = reply->rawHeaderList();
+  for (int i = 0; i < headers.size(); i++) {
+    QByteArray header = headers.at(i);
+    std::cerr << qPrintable(QString(header)) << std::endl;
+    QByteArray value = reply->rawHeader(header);
+    std::cerr << qPrintable(QString(value)) << std::endl;
+  }
+  std::cerr << "Body:" << std::endl;
+  std::cerr << "Open? " << (reply->isOpen() ? "true" : "false") << std::endl;
+  std::cerr << "Pos " << (reply->pos()) << std::endl;
 }
