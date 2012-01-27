@@ -15,10 +15,8 @@ class Capybara::Driver::Webkit
   class NodeNotAttachedError < Capybara::ElementNotFound
   end
 
-  attr_reader :browser
-
   def initialize(app, options={})
-    @app = app
+    @app = ErrorTrapper.new(app)
     @options = options
     @rack_server = Capybara::Server.new(@app)
     @rack_server.boot if Capybara.run_server
@@ -100,6 +98,7 @@ class Capybara::Driver::Webkit
   end
 
   def reset!
+    @app.reset
     browser.reset!
   end
 
@@ -122,10 +121,40 @@ class Capybara::Driver::Webkit
     @cookie_jar ||= CookieJar.new(browser)
   end
 
+  def browser
+    @app.raise_exception_from_server_thread
+    @browser
+  end
+
   private
 
   def url(path)
     @rack_server.url(path)
+  end
+
+  class ErrorTrapper
+    def initialize(app)
+      @app = app
+    end
+
+    def raise_exception_from_server_thread
+      if @exception
+        raise @exception
+      end
+    end
+
+    def reset
+      @exception = nil
+    end
+
+    def call(env)
+      begin
+        @app.call(env)
+      rescue Exception => exception
+        @exception = exception
+        raise exception
+      end
+    end
   end
 end
 

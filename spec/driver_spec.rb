@@ -795,6 +795,40 @@ describe Capybara::Driver::Webkit do
     end
   end
 
+  context "exception app" do
+    before(:all) do
+      @app = lambda do |env|
+        if env['PATH_INFO'] == "/error"
+          raise "I am an error"
+        else
+          [200, { 'Content-Type' => 'text/html', 'Content-Length' => "0" }, [""]]
+        end
+      end
+    end
+
+    it "reraises the exception from the server thread" do
+      expect {
+        subject.visit("/error")
+        wait_for_error_to_complete
+        subject.find("//body")
+      }.to raise_error(StandardError, /I am an error/)
+    end
+
+    it "clears exceptions after resetting" do
+      expect {
+        subject.visit("/error")
+        wait_for_error_to_complete
+        subject.reset!
+        subject.visit("/")
+        subject.find("//body")
+      }.not_to raise_error
+    end
+
+    def wait_for_error_to_complete
+      sleep(0.5)
+    end
+  end
+
   context "slow error app" do
     before(:all) do
       @app = lambda do |env|
