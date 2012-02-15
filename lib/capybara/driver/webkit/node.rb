@@ -122,9 +122,15 @@ class Capybara::Driver::Webkit
     def multiple_select?
       self.tag_name == "select" && self["multiple"] == "multiple"
     end
+    
+    def ignore_hidden_elements?      
+      Capybara.respond_to?(:ignore_hidden_elements) && Capybara.ignore_hidden_elements
+    end
 
     def check_visibility(element)
-      raise(ElementNotDisplayedError, "This element is not visible so it may not be interacted with") unless element.visible?
+      if ignore_hidden_elements?
+        raise(ElementNotDisplayedError, "This element is not visible so it may not be interacted with") unless element.visible?
+      end      
     end
   end
 end

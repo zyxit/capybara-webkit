@@ -317,7 +317,7 @@ describe Capybara::Driver::Webkit do
     it "finds visible elements" do
       subject.find("//p").first.should be_visible
       subject.find("//*[@id='invisible']").first.should_not be_visible
-    end
+    end    
   end
 
   context "console messages app" do
@@ -378,6 +378,10 @@ describe Capybara::Driver::Webkit do
                   <option selected="selected" id="topping-cherry">Cherry</option>
                 </optgroup>
               </select>
+              <select name="hidden" style="display:none;">
+                <option selected="selected" id="option-1">Option 1</option>
+                <option id="option-2">Option 2</option>
+              </select>              
               <textarea id="only-textarea">what a wonderful area for text</textarea>
               <input type="radio" id="only-radio" value="1"/>
               <button type="reset">Reset Form</button>
@@ -436,6 +440,13 @@ describe Capybara::Driver::Webkit do
       select = subject.find("//select").first
       select.set("Monkey")
       select.value.should == "Monkey"
+    end
+
+    it "sets an invisible select's value if capybara says not to ignore it" do
+      Capybara.ignore_hidden_elements = false
+      select = subject.find("//select[@name='hidden']").first
+      select.set("Option 2")
+      select.value.should == "Option 2"
     end
 
     it "sets a textarea's value" do
@@ -688,7 +699,7 @@ describe Capybara::Driver::Webkit do
               <select id="change_select" name="change_select">
                 <option value="1" id="option-1" selected="selected">one</option>
                 <option value="2" id="option-2">two</option>
-                <option value="2" id="invisible-option" style="display:none;">three</option>
+                <option value="3" id="invisible-option" style="display:none;">three</option>
               </select>
             </form>
             <script type="text/javascript">
@@ -723,6 +734,13 @@ describe Capybara::Driver::Webkit do
       subject.find("//a").first.click
       subject.current_url =~ %r{/next$}
     end
+    
+    it "clicks an invisible element if capybara says not to ignore it" do
+      Capybara.ignore_hidden_elements = false
+      subject.find("//a").last.click
+      subject.current_url =~ %r{/next$}      
+    end
+        
 
     it "fires a mouse event" do
       subject.find("//*[@id='mouseup']").first.trigger("mouseup")
@@ -752,7 +770,10 @@ describe Capybara::Driver::Webkit do
       subject.find("//*[@class='triggered']").size.should == 1
     end
 
-    context "raises error when" do
+    context "raises error when capybara says to ignore invisible elements and" do
+      before(:each) do
+        Capybara.ignore_hidden_elements = true
+      end
       it "tries to click an invisible element" do
         expect {
           subject.find("//*[@id='hidden']").first.click
